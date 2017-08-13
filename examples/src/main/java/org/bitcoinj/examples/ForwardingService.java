@@ -50,6 +50,8 @@ public class ForwardingService {
             System.err.println("Usage: address-to-send-back-to [regtest|testnet]");
             return;
         }
+        
+        
 
         // Figure out which network we should connect to. Each one gets its own set of files.
         NetworkParameters params;

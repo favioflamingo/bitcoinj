@@ -45,6 +45,11 @@ public class PostgresFullPrunedBlockStore extends DatabaseFullPrunedBlockStore {
     private static final String DATABASE_CONNECTION_URL_PREFIX = "jdbc:postgresql://";
 
     // create table SQL
+    private static final String CREATE_SETTINGS_TABLE = "";
+    private static final String CREATE_HEADERS_TABLE = "";
+    private static final String CREATE_UNDOABLE_TABLE = "";
+    private static final String CREATE_OPEN_OUTPUT_TABLE = "";
+    /*
     private static final String CREATE_SETTINGS_TABLE = "CREATE TABLE settings (\n" +
             "    name character varying(32) NOT NULL,\n" +
             "    value bytea,\n" +
@@ -79,7 +84,7 @@ public class PostgresFullPrunedBlockStore extends DatabaseFullPrunedBlockStore {
             "    coinbase boolean,\n" +
             "    CONSTRAINT openoutputs_pk PRIMARY KEY (hash,index)\n" +
             ")\n";
-
+*/
     // Some indexes to speed up inserts
     private static final String CREATE_OUTPUTS_ADDRESS_MULTI_INDEX      = "CREATE INDEX openoutputs_hash_index_num_height_toaddress_idx ON openoutputs USING btree (hash, index, height, toaddress)";
     private static final String CREATE_OUTPUTS_TOADDRESS_INDEX          = "CREATE INDEX openoutputs_toaddress_idx ON openoutputs USING btree (toaddress)";
@@ -134,21 +139,23 @@ public class PostgresFullPrunedBlockStore extends DatabaseFullPrunedBlockStore {
     @Override
     protected List<String> getCreateTablesSQL() {
         List<String> sqlStatements = new ArrayList<String>();
-        sqlStatements.add(CREATE_SETTINGS_TABLE);
-        sqlStatements.add(CREATE_HEADERS_TABLE);
-        sqlStatements.add(CREATE_UNDOABLE_TABLE);
-        sqlStatements.add(CREATE_OPEN_OUTPUT_TABLE);
+        //sqlStatements.add(CREATE_SETTINGS_TABLE);
+        //sqlStatements.add(CREATE_HEADERS_TABLE);
+        //sqlStatements.add(CREATE_UNDOABLE_TABLE);
+        //sqlStatements.add(CREATE_OPEN_OUTPUT_TABLE);
+        sqlStatements.add("SELECT 1;");
         return sqlStatements;
     }
 
     @Override
     protected List<String> getCreateIndexesSQL() {
         List<String> sqlStatements = new ArrayList<String>();
-        sqlStatements.add(CREATE_UNDOABLE_TABLE_INDEX);
-        sqlStatements.add(CREATE_OUTPUTS_ADDRESS_MULTI_INDEX);
-        sqlStatements.add(CREATE_OUTPUTS_ADDRESSTARGETABLE_INDEX);
-        sqlStatements.add(CREATE_OUTPUTS_HASH_INDEX);
-        sqlStatements.add(CREATE_OUTPUTS_TOADDRESS_INDEX);
+        //sqlStatements.add(CREATE_UNDOABLE_TABLE_INDEX);
+        //sqlStatements.add(CREATE_OUTPUTS_ADDRESS_MULTI_INDEX);
+        //sqlStatements.add(CREATE_OUTPUTS_ADDRESSTARGETABLE_INDEX);
+        //sqlStatements.add(CREATE_OUTPUTS_HASH_INDEX);
+        //sqlStatements.add(CREATE_OUTPUTS_TOADDRESS_INDEX);
+        sqlStatements.add("SELECT 1;");
         return sqlStatements;
     }
 

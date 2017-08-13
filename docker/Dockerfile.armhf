@@ -1,0 +1,36 @@
+FROM docker.e-flamingo.net:5000/armhf/base:jessie
+
+MAINTAINER Joel DeJesus "dejesus.joel@e-flamingo.net"
+
+ARG proxy
+ARG branch
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN if [ -z ${proxy+x} ]; then echo "Going WITHOUT an apt proxy" 1>&2; else echo "Acquire::http::Proxy \"http://$proxy\";" > /etc/apt/apt.conf.d/proxy.conf && echo "Going WITH an apt proxy" 1>&2 ; fi 
+
+RUN apt-get update && apt-get install -y sudo \
+  unzip oracle-java8-jdk maven dumb-init git-core\
+  locales && \
+  echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
+  useradd -ms /bin/false bitcoiner
+
+ENV LANG en_US.UTF-8
+
+COPY docker/run.sh /usr/local/bin/run-bitcoinj
+
+USER bitcoiner
+
+COPY .git /usr/src/bitcoinj/.git
+
+ENV JAVA_HOME /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre
+
+RUN mkdir /tmp/work && ( cd /usr/src/bitcoinj && git archive $branch | tar -xvf - -C /tmp/work ) && \
+  ( cd /tmp/work/examples && mvn clean && mvn install ) || echo "problem with installing" 1>&2
+
+WORKDIR /tmp/work/examples
+
+ENTRYPOINT ["/usr/bin/dumb-init"]
+
+CMD ["/usr/local/bin/run-bitcoinj"]
+
