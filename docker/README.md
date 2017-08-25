@@ -7,9 +7,13 @@ docker build -t docker.e-flamingo.net:5000/amd64/bitcoinj:$BRANCH --build-arg pr
 
 ```
 
-For rpi:
+For running:
 
 ```
-docker build -t docker.e-flamingo.net:5000/armhf/bitcoinj:$BRANCH --build-arg proxy="192.168.1.9:3142" --build-arg branch=$BRANCH -f docker/Dockerfile.armhf .
+cd /usr/src/bitcoinj
+cd tools
+mvn clean
+mvn install
+mvn exec:java -Dexec.mainClass=org.bitcoinj.tools.BuildCheckpoints -Dexec.args="-testnet"
 
 ```

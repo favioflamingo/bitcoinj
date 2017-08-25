@@ -103,6 +103,12 @@
             <autoReleaseAfterClose>false</autoReleaseAfterClose>
         </configuration>
       </plugin>
+      <plugin>
+            <groupId>com.simpligility.maven.plugins</groupId>
+            <artifactId>android-maven-plugin</artifactId>
+            <version>4.4.1</version>
+            <extensions>true</extensions>
+        </plugin>
     </plugins>
     <pluginManagement>
       <plugins>

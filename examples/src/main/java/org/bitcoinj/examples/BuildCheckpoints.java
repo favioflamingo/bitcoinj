@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.tools;
+package org.bitcoinj.examples;
 
 import org.bitcoinj.core.listeners.NewBestBlockListener;
 import org.bitcoinj.core.*;
+import org.bitcoinj.store.*;
+import org.bitcoinj.crypto.KeyCrypterException;
+import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.utils.BriefLogFormatter;
+import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
 import org.bitcoinj.net.discovery.DnsDiscovery;
+import org.bitcoinj.core.PeerGroup;
 import org.bitcoinj.utils.Threading;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
+import org.bitcoinj.net.BlockingClientManager;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -52,66 +56,101 @@ import java.util.Iterator;
 import java.util.List;
 
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Downloads and verifies a full chain from your local peer, emitting checkpoints at each difficulty transition period
- * to a file which is then signed with your key.
+ * ForwardingService demonstrates basic usage of the library. It sits on the network and when it receives coins, simply
+ * sends them onwards to an address given on the command line.
  */
 public class BuildCheckpoints {
-    private static NetworkParameters params;
+    private static Address forwardingAddress;
+    private static WalletAppKit kit;
 
     public static void main(String[] args) throws Exception {
-//        BriefLogFormatter.initWithSilentBitcoinJ();
+        // This line makes the log output more compact and easily read, especially when using the JDK log adapter.
         BriefLogFormatter.init();
-
-        OptionParser parser = new OptionParser();
-        parser.accepts("help");
-        OptionSpec<NetworkEnum> netFlag = parser.accepts("net").withRequiredArg().ofType(NetworkEnum.class).defaultsTo(NetworkEnum.MAIN);
-        parser.accepts("peer").withRequiredArg();
-        OptionSpec<Integer> daysFlag = parser.accepts("days").withRequiredArg().ofType(Integer.class).defaultsTo(30);
-        OptionSet options = parser.parse(args);
-
-        if (options.has("help")) {
-            System.out.println(Resources.toString(BuildCheckpoints.class.getResource("build-checkpoints-help.txt"), Charsets.UTF_8));
+       /* if (args.length < 1) {
+            System.err.println("Usage: address-to-send-back-to [regtest|testnet]");
             return;
-        }
-
-        final String suffix;
-        switch (netFlag.value(options)) {
-            case MAIN:
-            case PROD:
-                params = MainNetParams.get();
-                suffix = "";
-                break;
-            case TEST:
-                params = TestNet3Params.get();
-                suffix = "-testnet";
-                break;
-            case REGTEST:
-                params = RegTestParams.get();
-                suffix = "-regtest";
-                break;
-            default:
-                throw new RuntimeException("Unreachable.");
-        }
-
-        params = RegTestParams.get();
+        }*/
         
-        List<String> peerList = new ArrayList<String>();
-        peerList.add("192.168.1.9");
+        
+	//System.setProperty("socksProxyHost", "127.0.0.1");
+	//System.setProperty("socksProxyPort", "9050");
 
-        // Sorted map of block height to StoredBlock object.
-        final TreeMap<Integer, StoredBlock> checkpoints = new TreeMap<Integer, StoredBlock>();
 
-        // Configure bitcoinj to fetch only headers, not save them to disk, connect to a local fully synced/validated
-        // node and to save block headers that are on interval boundaries, as long as they are <1 month old.
+        // Figure out which network we should connect to. Each one gets its own set of files.
+        NetworkParameters params = RegTestParams.get();
+
+        String filePrefix = filePrefix = "forwarding-service-testnet";
+
+        // Parse the address given as the first parameter.
+        forwardingAddress = Address.fromBase58(params, "mzCZzNUXtYXXFED5B3YAKxmBAc4u1CqvYC");
+
+        // Start up a basic app using a class that automates some boilerplate.
+  /*      kit = new WalletAppKit(params, new File("."), filePrefix);
+
+        if (params == RegTestParams.get()) {
+            // Regression test mode is designed for testing and development only, so there's no public network for it.
+            // If you pick this mode, you're expected to be running a local "bitcoind -regtest" instance.
+            kit.connectToLocalHost();
+        }
+*/
+        // Download the block chain and wait until it's done.
+//        kit.startAsync();
+//	Thread.sleep(1000);
+
+        byte[] genesis_block = RegTestParams.getGenesisBlock();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : genesis_block) {
+              sb.append(String.format("%02X ", b));
+        }
+        System.out.println(sb.toString());
+
+        //final BlockChain chain = kit.chain();
         final BlockStore store = new MemoryBlockStore(params);
         final BlockChain chain = new BlockChain(params, store);
-        final PeerGroup peerGroup = new PeerGroup(params, chain);
-        
+        final PeerGroup peerGroup = new PeerGroup(params, chain, new BlockingClientManager());
 
-        
+        peerGroup.startAsync();
+
+
+        long now = new Date().getTime() / 1000;
+        peerGroup.setFastCatchupTimeSecs(now);
+
+        final long timeAgo = now - (86400 * options.valueOf(daysFlag));
+        System.out.println("Checkpointing up to " + Utils.dateTimeFormat(timeAgo * 1000));
+
+
+        List<String> peerList = new ArrayList<String>();
+        peerList.add("bitcoind.regtest");
+        //peerList.add("192.168.1.11");
+        //peerList.add("192.155.82.123");
+        /*peerList.add("178.21.118.174");
+        peerList.add("144.76.238.143");
+        peerList.add("47.89.54.17");
+        peerList.add("52.29.69.203");
+        peerList.add("194.187.248.133");
+        peerList.add("217.23.14.74");
+        peerList.add("188.130.244.12");
+        peerList.add("144.76.75.197");
+        peerList.add("144.76.36.199");
+        peerList.add("167.114.82.80");
+        peerList.add("80.100.203.151");
+        peerList.add("52.72.156.74");
+        peerList.add("188.226.202.220");
+        peerList.add("52.10.6.141");
+        peerList.add("176.9.113.75");
+        peerList.add("54.154.44.169");
+        peerList.add("78.47.147.60");
+        peerList.add("104.219.170.91");
+        peerList.add("104.130.141.235");
+        peerList.add("104.130.253.244");
+        peerList.add("46.19.33.249");
+        peerList.add("54.251.146.205");
+        peerList.add("93.190.142.127");
+        peerList.add("144.76.136.19");*/
+
         for (Iterator<String> i = peerList.iterator(); i.hasNext();) {
             final InetAddress ipAddress;
             final PeerAddress peerAddress;
@@ -127,20 +166,19 @@ public class BuildCheckpoints {
                 //return;
             }
         }
+        peerGroup.downloadBlockChain();
 
+        DnsDiscovery dnsDiscovery = new DnsDiscovery(params);
+        peerGroup.addPeerDiscovery(dnsDiscovery);
 
-
-        long now = new Date().getTime() / 1000;
-        peerGroup.setFastCatchupTimeSecs(now);
-
-        final long timeAgo = now - (86400 * options.valueOf(daysFlag));
-        System.out.println("Checkpointing up to " + Utils.dateTimeFormat(timeAgo * 1000));
+        final TreeMap<Integer, StoredBlock> checkpoints = new TreeMap<Integer, StoredBlock>();
 
         chain.addNewBestBlockListener(Threading.SAME_THREAD, new NewBestBlockListener() {
             @Override
             public void notifyNewBestBlock(StoredBlock block) throws VerificationException {
                 int height = block.getHeight();
                 System.out.println(String.format("got new block height=%d",height));
+                
                 if (height % params.getInterval() == 0 && block.getHeader().getTimeSeconds() <= timeAgo) {
                     System.out.println(String.format("Checkpointing block %s at height %d, time %s",
                             block.getHeader().getHash(), block.getHeight(), Utils.dateTimeFormat(block.getHeader().getTime())));
@@ -148,29 +186,27 @@ public class BuildCheckpoints {
                 }
             }
         });
-	System.out.println("Starting peer chain");
-        //DnsDiscovery dnsDiscovery = new DnsDiscovery(params);
-        //peerGroup.addPeerDiscovery(dnsDiscovery);
-        peerGroup.startAsync();
-	System.out.println("downloading blockchain");
-        peerGroup.downloadBlockChain();
-	System.out.println("download done");
+
+
         checkState(checkpoints.size() > 0);
 
         final File plainFile = new File("checkpoints" + suffix);
         final File textFile = new File("checkpoints" + suffix + ".txt");
-        System.out.println("writing out files - 1");
+
         // Write checkpoint data out.
         writeBinaryCheckpoints(checkpoints, plainFile);
         writeTextualCheckpoints(checkpoints, textFile);
-        System.out.println("writing out files - 2");
+
         peerGroup.stop();
         store.close();
-        System.out.println("writing out files - 3");
+
         // Sanity check the created files.
         sanityCheck(plainFile, checkpoints.size());
         sanityCheck(textFile, checkpoints.size());
-        System.out.println("writing out files - 4");
+
+        try {
+            Thread.sleep(Long.MAX_VALUE);
+        } catch (InterruptedException ignored) {}
     }
 
     private static void writeBinaryCheckpoints(TreeMap<Integer, StoredBlock> checkpoints, File file) throws Exception {
