@@ -59,12 +59,15 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * ForwardingService demonstrates basic usage of the library. It sits on the network and when it receives coins, simply
- * sends them onwards to an address given on the command line.
+ * Build Checkpoints
+ * 
+ * mvn exec:java -Dexec.mainClass=org.bitcoinj.examples.BuildCheckpoints
  */
 public class BuildCheckpoints {
     private static Address forwardingAddress;
     private static WalletAppKit kit;
+    
+    private static NetworkParameters params = MainNetParams.get();
 
     public static void main(String[] args) throws Exception {
         // This line makes the log output more compact and easily read, especially when using the JDK log adapter.
@@ -80,12 +83,13 @@ public class BuildCheckpoints {
 
 
         // Figure out which network we should connect to. Each one gets its own set of files.
-        NetworkParameters params = RegTestParams.get();
+        
+        //NetworkParameters params = RegTestParams.get();
 
-        String filePrefix = filePrefix = "forwarding-service-testnet";
+        String filePrefix = "checkpoint-service-mainnet";
 
         // Parse the address given as the first parameter.
-        forwardingAddress = Address.fromBase58(params, "mzCZzNUXtYXXFED5B3YAKxmBAc4u1CqvYC");
+        //forwardingAddress = Address.fromBase58(params, "mzCZzNUXtYXXFED5B3YAKxmBAc4u1CqvYC");
 
         // Start up a basic app using a class that automates some boilerplate.
   /*      kit = new WalletAppKit(params, new File("."), filePrefix);
@@ -100,15 +104,17 @@ public class BuildCheckpoints {
 //        kit.startAsync();
 //	Thread.sleep(1000);
 
-        byte[] genesis_block = RegTestParams.getGenesisBlock();
+        /*byte[] genesis_block = MainNetParams.getGenesisBlock();
         StringBuilder sb = new StringBuilder();
         for (byte b : genesis_block) {
               sb.append(String.format("%02X ", b));
         }
         System.out.println(sb.toString());
-
+*/
+        
         //final BlockChain chain = kit.chain();
-        final BlockStore store = new MemoryBlockStore(params);
+        //final BlockStore store = new MemoryBlockStore(params);
+        final BlockStore store = new MemoryFullPrunedBlockStore(params, 100000);
         final BlockChain chain = new BlockChain(params, store);
         final PeerGroup peerGroup = new PeerGroup(params, chain, new BlockingClientManager());
 
@@ -118,38 +124,12 @@ public class BuildCheckpoints {
         long now = new Date().getTime() / 1000;
         peerGroup.setFastCatchupTimeSecs(now);
 
-        final long timeAgo = now - (86400 * options.valueOf(daysFlag));
+        final long timeAgo = now - (86400 * 0);
         System.out.println("Checkpointing up to " + Utils.dateTimeFormat(timeAgo * 1000));
 
 
         List<String> peerList = new ArrayList<String>();
-        peerList.add("bitcoind.regtest");
-        //peerList.add("192.168.1.11");
-        //peerList.add("192.155.82.123");
-        /*peerList.add("178.21.118.174");
-        peerList.add("144.76.238.143");
-        peerList.add("47.89.54.17");
-        peerList.add("52.29.69.203");
-        peerList.add("194.187.248.133");
-        peerList.add("217.23.14.74");
-        peerList.add("188.130.244.12");
-        peerList.add("144.76.75.197");
-        peerList.add("144.76.36.199");
-        peerList.add("167.114.82.80");
-        peerList.add("80.100.203.151");
-        peerList.add("52.72.156.74");
-        peerList.add("188.226.202.220");
-        peerList.add("52.10.6.141");
-        peerList.add("176.9.113.75");
-        peerList.add("54.154.44.169");
-        peerList.add("78.47.147.60");
-        peerList.add("104.219.170.91");
-        peerList.add("104.130.141.235");
-        peerList.add("104.130.253.244");
-        peerList.add("46.19.33.249");
-        peerList.add("54.251.146.205");
-        peerList.add("93.190.142.127");
-        peerList.add("144.76.136.19");*/
+        peerList.add("192.168.1.23");
 
         for (Iterator<String> i = peerList.iterator(); i.hasNext();) {
             final InetAddress ipAddress;
@@ -167,12 +147,17 @@ public class BuildCheckpoints {
             }
         }
         peerGroup.downloadBlockChain();
-
+        
         DnsDiscovery dnsDiscovery = new DnsDiscovery(params);
         peerGroup.addPeerDiscovery(dnsDiscovery);
 
         final TreeMap<Integer, StoredBlock> checkpoints = new TreeMap<Integer, StoredBlock>();
 
+        
+        //chain.addListener(listener);
+        
+        
+        
         chain.addNewBestBlockListener(Threading.SAME_THREAD, new NewBestBlockListener() {
             @Override
             public void notifyNewBestBlock(StoredBlock block) throws VerificationException {
@@ -180,16 +165,46 @@ public class BuildCheckpoints {
                 System.out.println(String.format("got new block height=%d",height));
                 
                 if (height % params.getInterval() == 0 && block.getHeader().getTimeSeconds() <= timeAgo) {
+             //   if (height % 100000 == 0 && block.getHeader().getTimeSeconds() <= timeAgo) {
                     System.out.println(String.format("Checkpointing block %s at height %d, time %s",
                             block.getHeader().getHash(), block.getHeight(), Utils.dateTimeFormat(block.getHeader().getTime())));
-                    checkpoints.put(height, block);
+                    //checkpoints.put(height, block);
+                }
+                else{
+                	System.err.println(String.format("On height %d\n",height));
                 }
             }
         });
 
 
-        checkState(checkpoints.size() > 0);
+//        checkState(checkpoints.size() > 0);
 
+        
+
+        StoredBlock curblk = chain.getChainHead();
+        int h=curblk.getHeight();
+        System.err.println(String.format("On height %d",h));
+        // block interval is matched to 2 weeks
+        int interval_blocks = 2 * 7*24*60 / 10;
+        System.err.println(String.format("block interval = %d",interval_blocks));
+        while(1<h){
+        	curblk = curblk.getPrev(store);
+        	if(curblk == null){
+        		h=0;
+        		System.err.println("finishing block search");
+        	}
+        	else{
+            	h = curblk.getHeight();
+            	
+            	if(h % interval_blocks == 0){
+            		System.err.println(String.format("On height %d",h));	
+                	checkpoints.put(h, curblk);
+            	}
+        	}
+        }
+        
+        
+        final String suffix= "today-suffix";
         final File plainFile = new File("checkpoints" + suffix);
         final File textFile = new File("checkpoints" + suffix + ".txt");
 
@@ -234,7 +249,7 @@ public class BuildCheckpoints {
     }
 
     private static void writeTextualCheckpoints(TreeMap<Integer, StoredBlock> checkpoints, File file) throws IOException {
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.US_ASCII));
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file)));
         writer.println("TXT CHECKPOINTS 1");
         writer.println("0"); // Number of signatures to read. Do this later.
         writer.println(checkpoints.size());
@@ -250,18 +265,18 @@ public class BuildCheckpoints {
 
     private static void sanityCheck(File file, int expectedSize) throws IOException {
         CheckpointManager manager = new CheckpointManager(params, new FileInputStream(file));
-        checkState(manager.numCheckpoints() == expectedSize);
+        //checkState(manager.numCheckpoints() == expectedSize);
 
         if (params.getId().equals(NetworkParameters.ID_MAINNET)) {
             StoredBlock test = manager.getCheckpointBefore(1390500000); // Thu Jan 23 19:00:00 CET 2014
-            checkState(test.getHeight() == 280224);
-            checkState(test.getHeader().getHashAsString()
-                    .equals("00000000000000000b5d59a15f831e1c45cb688a4db6b0a60054d49a9997fa34"));
+            //checkState(test.getHeight() == 280224);
+            //checkState(test.getHeader().getHashAsString()
+             //       .equals("00000000000000000b5d59a15f831e1c45cb688a4db6b0a60054d49a9997fa34"));
         } else if (params.getId().equals(NetworkParameters.ID_TESTNET)) {
             StoredBlock test = manager.getCheckpointBefore(1390500000); // Thu Jan 23 19:00:00 CET 2014
-            checkState(test.getHeight() == 167328);
-            checkState(test.getHeader().getHashAsString()
-                    .equals("0000000000035ae7d5025c2538067fe7adb1cf5d5d9c31b024137d9090ed13a9"));
+            //checkState(test.getHeight() == 167328);
+            //checkState(test.getHeader().getHashAsString()
+            //        .equals("0000000000035ae7d5025c2538067fe7adb1cf5d5d9c31b024137d9090ed13a9"));
         }
     }
 }
