@@ -3,11 +3,8 @@ FROM docker.e-flamingo.net:5000/amd64/base:jessie
 MAINTAINER Joel DeJesus "dejesus.joel@e-flamingo.net"
 
 ARG proxy
-ARG branch
 
 ENV DEBIAN_FRONTEND noninteractive
-
-
 
 RUN if [ -z ${proxy+x} ]; then echo "Going WITHOUT an apt proxy" 1>&2; else echo "Acquire::http::Proxy \"http://$proxy\";" > /etc/apt/apt.conf.d/proxy.conf && echo "Going WITH an apt proxy" 1>&2 ; fi 
 
@@ -24,19 +21,19 @@ RUN apt-get update && apt-get install -y sudo \
 
 ENV LANG en_US.UTF-8
 
-COPY docker/run.sh /usr/local/bin/run-bitcoinj
-
 USER builder
 
-COPY .git /usr/src/bitcoinj/.git
+# becomes jdk-9.0.1
+COPY docker/jdk-9.0.1_linux-x64_bin.tar.gz /usr/src/jdk-9.0.1_linux-x64_bin.tar.gz
+# becomes jre-9.0.1
+COPY docker/jre-9.0.1_linux-x64_bin.tar.gz /usr/src/jre-9.0.1_linux-x64_bin.tar.gz
 
-ENV JAVA_HOME /usr/lib/jvm/jdk-8-oracle-x64/jre
+RUN cd /usr/src && tar -xvzf jdk-9.0.1_linux-x64_bin.tar.gz 2>/dev/null && tar -xvzf jre-9.0.1_linux-x64_bin.tar.gz 2>/dev/null && ls && \
+ mv /usr/src/jdk-9.0.1 /usr/lib/jvm/jdk-9-oracle-x64 && mv /usr/src/jre-9.0.1 /usr/lib/jvm/jdk-9-oracle-x64/jre
 
-RUN mkdir /tmp/work && ( cd /usr/src/bitcoinj && git archive $branch | tar -xvf - -C /tmp/work ) && \
-  ( cd /tmp/work/examples && mvn clean && mvn install ) || echo "problem with installing" 1>&2
 
-WORKDIR /tmp/work/examples
+ENV JAVA_HOME /usr/lib/jvm/jdk-9-oracle-x64/jre
 
 ENTRYPOINT ["/usr/bin/dumb-init"]
 
-CMD ["/usr/local/bin/run-bitcoinj"]
+CMD ["/bin/bash"]
