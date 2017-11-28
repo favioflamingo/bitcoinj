@@ -1,3 +1,17 @@
+# Copyright by the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # An example of how to use Jython to implement the "Getting Started" tutorial app, which receives coins and simply
 # sends them on (minus a fee).
 
@@ -5,8 +19,8 @@ __author__ = "richard 'ragmondo' green"
 
 import sys
 
-# Change this to point to where you have a copy of the bitcoinj.jar
-sys.path.append(r"/path/to/bitcoinj-core-0.12-bundled.jar")
+# Change this to point to where you have a copy of the bitcoincashj.jar
+sys.path.append(r"/path/to/bitcoincashj-core-0.12-bundled.jar")
 
 # This is the address to forward all payments to. Change this (unless you want to send me some testnet coins)
 my_address_text = "mzEjmna15T7DXj4HC9MBEG2UJzgFfEYtFo"
@@ -20,7 +34,7 @@ from org.bitcoinj.core import *
 
 import org.bitcoinj.crypto.KeyCrypterException
 import org.bitcoinj.params.MainNetParams
-from org.bitcoinj.kits import WalletAppKit
+from org.bitcoinzj.kits import WalletAppKit
 
 from com.google.common.util.concurrent import FutureCallback
 from com.google.common.util.concurrent import Futures

@@ -1,10 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright by the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+<<<<<<< HEAD
   <groupId>org.bitcoinj</groupId>
   <artifactId>bitcoinj-parent</artifactId>
   <version>0.14.5</version>
+=======
+  <groupId>org.bitcoincashj</groupId>
+  <artifactId>bitcoincashj-parent</artifactId>
+  <version>0.15-SNAPSHOT</version>
+>>>>>>> woodywang/master
   <packaging>pom</packaging>
 
   <modules>
@@ -21,13 +44,13 @@
   </parent>
 
   <scm>
-    <connection>scm:git:https://github.com/bitcoinj/bitcoinj</connection>
-    <developerConnection>scm:git:https://github.com/bitcoinj/bitcoinj</developerConnection>
-    <url>scm:git:https://github.com/bitcoinj/bitcoinj</url>
+    <connection>scm:git:https://github.com/woodywang/bitcoincashj</connection>
+    <developerConnection>scm:git:https://github.com/woodywang/bitcoincashj</developerConnection>
+    <url>scm:git:https://github.com/woodywang/bitcoincashj</url>
   </scm>
 
-  <name>bitcoinj Parent</name>
-  <description>Provides the common configuration for the BitCoinJ modules</description>
+  <name>bitcoincashj Parent</name>
+  <description>Provides the common configuration for the BitCoinCashJ modules</description>
   <url>http://www.bitcoinj.org/</url>
 
   <licenses>
@@ -41,15 +64,12 @@
 
   <issueManagement>
     <system>GitHub</system>
+<<<<<<< HEAD
     <url>https://github.com/bitcoinj/bitcoinj/issues</url>
+=======
+    <url>https://github.com/woodywang/bitcoincashj/issues</url>
+>>>>>>> woodywang/master
   </issueManagement>
-
-  <mailingLists>
-    <mailingList>
-      <name>bitcoinj Google Group</name>
-      <post>https://groups.google.com/forum/#!forum/bitcoinj</post>
-    </mailingList>
-  </mailingLists>
 
   <distributionManagement>
     <snapshotRepository>
@@ -179,7 +199,7 @@
         <artifactId>slf4j-api</artifactId>
         <version>1.7.20</version>
       </dependency>
-      <!-- bitcoinj consumers are expected to provide their own SLF4J adapters
+      <!-- bitcoincashj consumers are expected to provide their own SLF4J adapters
     such as logback, slf4j-log4j12, slf4j-jcl and so on
     see http://www.slf4j.org/faq.html -->
       <dependency>

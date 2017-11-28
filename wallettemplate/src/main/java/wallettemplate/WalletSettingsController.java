@@ -1,4 +1,6 @@
 /*
+ * Copyright by the original author or authors.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +16,9 @@
 
 package wallettemplate;
 
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.MnemonicCode;
-import org.bitcoinj.wallet.DeterministicSeed;
+import org.bitcoincashj.core.Utils;
+import org.bitcoincashj.crypto.MnemonicCode;
+import org.bitcoincashj.wallet.DeterministicSeed;
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.Service;
 import javafx.application.Platform;
@@ -82,7 +84,7 @@ public class WalletSettingsController {
         // Set the mnemonic seed words.
         final List<String> mnemonicCode = seed.getMnemonicCode();
         checkNotNull(mnemonicCode);    // Already checked for encryption.
-        String origWords = Utils.join(mnemonicCode);
+        String origWords = Utils.SPACE_JOINER.join(mnemonicCode);
         wordsArea.setText(origWords);
 
         // Validate words as they are being typed.
@@ -168,7 +170,7 @@ public class WalletSettingsController {
 
         long birthday = datePicker.getValue().atStartOfDay().toEpochSecond(ZoneOffset.UTC);
         DeterministicSeed seed = new DeterministicSeed(Splitter.on(' ').splitToList(wordsArea.getText()), null, "", birthday);
-        // Shut down bitcoinj and restart it with the new seed.
+        // Shut down bitcoincashj and restart it with the new seed.
         Main.bitcoin.addListener(new Service.Listener() {
             @Override
             public void terminated(Service.State from) {
