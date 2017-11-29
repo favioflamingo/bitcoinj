@@ -50,6 +50,8 @@ public class VersionMessage extends Message {
     /** A flag that denotes whether the peer supports the getutxos message or not. */
     public static final int NODE_GETUTXOS = 2;
 
+    public static final int NODE_BITCOIN_CASH = (1 << 5);
+
     /**
      * The version number of the protocol spoken.
      */

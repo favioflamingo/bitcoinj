@@ -15,23 +15,23 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.examples;
+package org.bitcoincashj.examples;
 
-import org.bitcoinj.core.listeners.NewBestBlockListener;
-import org.bitcoinj.core.*;
-import org.bitcoinj.store.*;
-import org.bitcoinj.crypto.KeyCrypterException;
-import org.bitcoinj.kits.WalletAppKit;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.core.PeerGroup;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.net.BlockingClientManager;
+import org.bitcoincashj.core.listeners.NewBestBlockListener;
+import org.bitcoincashj.core.*;
+import org.bitcoincashj.store.*;
+import org.bitcoincashj.crypto.KeyCrypterException;
+import org.bitcoincashj.kits.WalletAppKit;
+import org.bitcoincashj.params.MainNetParams;
+import org.bitcoincashj.params.RegTestParams;
+import org.bitcoincashj.params.TestNet3Params;
+import org.bitcoincashj.utils.BriefLogFormatter;
+import org.bitcoincashj.wallet.Wallet;
+import org.bitcoincashj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.bitcoincashj.net.discovery.DnsDiscovery;
+import org.bitcoincashj.core.PeerGroup;
+import org.bitcoincashj.utils.Threading;
+import org.bitcoincashj.net.BlockingClientManager;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -137,7 +137,7 @@ public class BuildCheckpoints {
             String peerFlag = i.next();
             try {
                 ipAddress = InetAddress.getByName(peerFlag);
-                peerAddress = new PeerAddress(ipAddress, params.getPort());
+                peerAddress = new PeerAddress(params, ipAddress, params.getPort());
                 System.out.println("Connecting to " + peerAddress + "...");
                 peerGroup.addAddress(peerAddress);
             } catch (UnknownHostException e) {
